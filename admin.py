@@ -334,24 +334,8 @@ def edit_user(user_id):
         is_admin = form.is_admin.data
         new_password = form.reset_password.data if form.reset_password.data else None
         
-        # Try SQLAlchemy first, fallback to direct database access
-        success = False
-        try:
-            user.is_active = is_active
-            user.is_admin = is_admin
-            
-            if new_password:
-                user.set_password(new_password)
-            
-            db.session.commit()
-            success = True
-        except Exception:
-            # SQLAlchemy has cached metadata issues, use direct database access
-            try:
-                db.session.rollback()
-            except:
-                pass
-            success = update_user_direct(user_id, is_active, is_admin, new_password)
+        # Use direct database access due to SQLAlchemy caching issues
+        success = update_user_direct(user_id, is_active, is_admin, new_password)
         
         if success:
             # Update authorized users environment variable
