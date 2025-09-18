@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier Utilisateur - CARPEM Oncocentre{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="bi bi-pencil"></i> Modifier Utilisateur: {{ user.username }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Nom d'utilisateur</label>
+                        <input type="text" class="form-control" value="{{ user.username }}" disabled>
+                        <div class="form-text">Le nom d'utilisateur ne peut pas être modifié</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_active(class="form-check-input") }}
+                            {{ form.is_active.label(class="form-check-label") }}
+                        </div>
+                        <div class="form-text">
+                            Les utilisateurs inactifs ne peuvent pas se connecter
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_admin(class="form-check-input") }}
+                            {{ form.is_admin.label(class="form-check-label") }}
+                        </div>
+                        <div class="form-text">
+                            Les administrateurs peuvent gérer d'autres utilisateurs
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6><i class="bi bi-key"></i> Réinitialisation du Mot de Passe</h6>
+                    
+                    <div class="mb-3">
+                        {{ form.reset_password.label(class="form-label") }}
+                        {{ form.reset_password(class="form-control", placeholder="Laisser vide pour conserver le mot de passe actuel") }}
+                        {% if form.reset_password.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.reset_password.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Minimum 8 caractères si vous souhaitez le changer</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.confirm_password.label(class="form-label") }}
+                        {{ form.confirm_password(class="form-control", placeholder="Confirmer le nouveau mot de passe") }}
+                        {% if form.confirm_password.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.confirm_password.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('admin.list_users') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Annuler
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6><i class="bi bi-info-circle"></i> Informations Utilisateur</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Créé le:</dt>
+                    <dd class="col-sm-8">{{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</dd>
+                    
+                    <dt class="col-sm-4">Patients créés:</dt>
+                    <dd class="col-sm-8">
+                        {% set patient_count = user.patients|length %}
+                        {% if patient_count > 0 %}
+                            <a href="{{ url_for('admin.user_patients', user_id=user.id) }}" class="text-decoration-none">
+                                {{ patient_count }} patient{{ 's' if patient_count > 1 else '' }}
+                            </a>
+                        {% else %}
+                            0 patient
+                        {% endif %}
+                    </dd>
+                    
+                    <dt class="col-sm-4">Statut actuel:</dt>
+                    <dd class="col-sm-8">
+                        {% if user.is_active %}
+                            <span class="badge bg-success">Actif</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactif</span>
+                        {% endif %}
+                        {% if user.is_admin %}
+                            <span class="badge bg-warning ms-1">Administrateur</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -4,7 +4,10 @@
       "Bash(python:*)",
       "Bash(pip install:*)",
       "WebFetch(domain:carpem.fr)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(dir:*)",
+      "Bash(del oncocentre.db)",
+      "Bash(del encryption.key)"
     ],
     "deny": [],
     "ask": []

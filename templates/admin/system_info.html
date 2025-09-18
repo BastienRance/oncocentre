@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Informations Système - CARPEM Oncocentre{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-info-circle"></i> Informations Système</h2>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Retour au Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-people"></i> Statistiques Utilisateurs</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">Total utilisateurs:</dt>
+                    <dd class="col-sm-6">{{ info.total_users }}</dd>
+                    
+                    <dt class="col-sm-6">Utilisateurs actifs:</dt>
+                    <dd class="col-sm-6">{{ info.active_users }}</dd>
+                    
+                    <dt class="col-sm-6">Administrateurs:</dt>
+                    <dd class="col-sm-6">{{ info.admin_users }}</dd>
+                    
+                    <dt class="col-sm-6">Patients totaux:</dt>
+                    <dd class="col-sm-6">{{ info.total_patients }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-shield-check"></i> Sécurité</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">Clé de chiffrement:</dt>
+                    <dd class="col-sm-6">
+                        {% if info.encryption_key_exists %}
+                            <span class="badge bg-success">Présente</span>
+                        {% else %}
+                            <span class="badge bg-danger">Manquante</span>
+                        {% endif %}
+                    </dd>
+                    
+                    <dt class="col-sm-6">Base de données:</dt>
+                    <dd class="col-sm-6">{{ info.database_path }}</dd>
+                    
+                    <dt class="col-sm-6">HTTPS:</dt>
+                    <dd class="col-sm-6">
+                        {% if request.is_secure %}
+                            <span class="badge bg-success">Activé</span>
+                        {% else %}
+                            <span class="badge bg-warning">HTTP</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-list-check"></i> Utilisateurs Autorisés</h5>
+            </div>
+            <div class="card-body">
+                {% if info.authorized_users %}
+                    <p class="text-muted mb-2">Utilisateurs actuellement autorisés à se connecter:</p>
+                    <div class="row">
+                        {% for user in info.authorized_users %}
+                            <div class="col-md-3 mb-2">
+                                <span class="badge bg-primary">{{ user }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <hr>
+                    <p class="text-muted small mb-0">
+                        <strong>Note :</strong> Cette liste est automatiquement mise à jour lors de la 
+                        création, modification ou suppression d'utilisateurs.
+                    </p>
+                {% else %}
+                    <p class="text-muted">Aucun utilisateur autorisé configuré.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-exclamation-triangle"></i> Recommandations de Sécurité</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Utiliser HTTPS en production
+                        {% if request.is_secure %}
+                            <span class="badge bg-success">✓ Actif</span>
+                        {% else %}
+                            <span class="badge bg-warning">À configurer</span>
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Clé de chiffrement sécurisée
+                        {% if info.encryption_key_exists %}
+                            <span class="badge bg-success">✓ Présente</span>
+                        {% else %}
+                            <span class="badge bg-danger">Manquante</span>
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Sauvegardes régulières
+                        <span class="badge bg-secondary">Manuel</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Mots de passe forts
+                        <span class="badge bg-info">Recommandé</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Limitation des privilèges admin
+                        <span class="badge bg-info">{{ info.admin_users }} admin(s)</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

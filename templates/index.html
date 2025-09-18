@@ -9,36 +9,68 @@
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('main.create_patient') }}" id="patientForm">
+                    {{ form.hidden_tag() }}
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="ipp" class="form-label">IPP *</label>
-                            <input type="text" class="form-control" id="ipp" name="ipp" required>
+                            {{ form.ipp.label(class="form-label") }}
+                            {{ form.ipp(class="form-control") }}
+                            {% if form.ipp.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.ipp.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="sex" class="form-label">Sexe *</label>
-                            <select class="form-select" id="sex" name="sex" required>
-                                <option value="">Sélectionnez...</option>
-                                <option value="M">Masculin</option>
-                                <option value="F">Féminin</option>
-                            </select>
+                            {{ form.sex.label(class="form-label") }}
+                            {{ form.sex(class="form-select") }}
+                            {% if form.sex.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.sex.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="first_name" class="form-label">Prénom *</label>
-                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                            {{ form.first_name.label(class="form-label") }}
+                            {{ form.first_name(class="form-control") }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.first_name.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="last_name" class="form-label">Nom *</label>
-                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                            {{ form.last_name.label(class="form-label") }}
+                            {{ form.last_name(class="form-control") }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.last_name.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="birth_date" class="form-label">Date de Naissance *</label>
-                            <input type="date" class="form-control" id="birth_date" name="birth_date" required>
+                            {{ form.birth_date.label(class="form-label") }}
+                            {{ form.birth_date(class="form-control") }}
+                            {% if form.birth_date.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.birth_date.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="col-md-6 mb-3 d-flex align-items-end">
                             <div class="w-100">
@@ -52,7 +84,7 @@
                     </div>
                     
                     <div class="text-center mt-4">
-                        <button type="submit" class="btn btn-carpem btn-lg">Créer Identifiant Patient</button>
+                        {{ form.submit(class="btn btn-carpem btn-lg") }}
                     </div>
                 </form>
             </div>

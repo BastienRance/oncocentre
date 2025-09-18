@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Utilisateurs - CARPEM Oncocentre{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-people"></i> Gestion des Utilisateurs</h2>
+            <div>
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left"></i> Retour au Dashboard
+                </a>
+                <a href="{{ url_for('admin.create_user') }}" class="btn btn-success">
+                    <i class="bi bi-person-plus"></i> Créer Utilisateur
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                {% if users %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Utilisateur</th>
+                                    <th>Statut</th>
+                                    <th>Rôle</th>
+                                    <th>Patients</th>
+                                    <th>Créé le</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr {% if not user.is_active %}class="table-secondary"{% endif %}>
+                                    <td>
+                                        <strong>{{ user.username }}</strong>
+                                        {% if user.id == current_user.id %}
+                                            <span class="badge bg-secondary ms-1">Vous</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="badge bg-success">Actif</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactif</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.is_admin %}
+                                            <span class="badge bg-warning">Administrateur</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">Utilisateur</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.patient_count > 0 %}
+                                            <a href="{{ url_for('admin.user_patients', user_id=user.id) }}" class="text-decoration-none">
+                                                {{ user.patient_count }} patient{{ 's' if user.patient_count > 1 else '' }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">0 patient</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            {% if user.id != current_user.id %}
+                                                <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" 
+                                                   class="btn btn-outline-primary" title="Modifier">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger" 
+                                                        onclick="confirmDelete('{{ user.username }}', {{ user.id }}, {{ user.patient_count }})"
+                                                        title="Supprimer">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            {% else %}
+                                                <span class="text-muted small">Auto-gestion interdite</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">Aucun utilisateur trouvé.</p>
+                        <a href="{{ url_for('admin.create_user') }}" class="btn btn-primary">
+                            Créer le Premier Utilisateur
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmer la Suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer l'utilisateur <strong id="deleteUsername"></strong> ?</p>
+                <div id="deleteWarning" class="alert alert-warning d-none">
+                    <strong>Attention :</strong> Cet utilisateur a créé <span id="patientCount"></span> patient(s). 
+                    Le compte sera désactivé au lieu d'être supprimé pour préserver l'intégrité des données.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger" id="deleteButton">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(username, userId, patientCount) {
+    document.getElementById('deleteUsername').textContent = username;
+    document.getElementById('deleteForm').action = '/admin/users/' + userId + '/delete';
+    
+    const warning = document.getElementById('deleteWarning');
+    const button = document.getElementById('deleteButton');
+    
+    if (patientCount > 0) {
+        document.getElementById('patientCount').textContent = patientCount;
+        warning.classList.remove('d-none');
+        button.textContent = 'Désactiver';
+        button.classList.remove('btn-danger');
+        button.classList.add('btn-warning');
+    } else {
+        warning.classList.add('d-none');
+        button.textContent = 'Supprimer';
+        button.classList.remove('btn-warning');
+        button.classList.add('btn-danger');
+    }
+    
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}
