@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card carpem-card">
+            <div class="card-header">
+                <h2 class="text-center mb-0">Création d'Identifiant CARPEM Oncocentre</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('main.create_patient') }}" id="patientForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="ipp" class="form-label">IPP *</label>
+                            <input type="text" class="form-control" id="ipp" name="ipp" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="sex" class="form-label">Sexe *</label>
+                            <select class="form-select" id="sex" name="sex" required>
+                                <option value="">Sélectionnez...</option>
+                                <option value="M">Masculin</option>
+                                <option value="F">Féminin</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">Prénom *</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">Nom *</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="birth_date" class="form-label">Date de Naissance *</label>
+                            <input type="date" class="form-control" id="birth_date" name="birth_date" required>
+                        </div>
+                        <div class="col-md-6 mb-3 d-flex align-items-end">
+                            <div class="w-100">
+                                <label class="form-label">Identifiant Oncocentre</label>
+                                <div class="preview-id-container">
+                                    <span id="preview_id" class="preview-id">ONCOCENTRE_2025_00001</span>
+                                    <small class="text-muted d-block">Aperçu de l'identifiant suivant</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-carpem btn-lg">Créer Identifiant Patient</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('main.list_patients') }}" class="btn btn-outline-carpem">
+                Voir la Liste des Patients
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

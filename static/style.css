@@ -1,0 +1,204 @@
+/* CARPEM Brand Colors */
+:root {
+    --carpem-blue: #009ee0;
+    --carpem-pink: #ec2849;
+    --carpem-light-blue: #e6f7ff;
+    --carpem-dark-blue: #0077b3;
+}
+
+/* General Styling */
+body {
+    background: linear-gradient(135deg, var(--carpem-light-blue) 0%, #f8f9fa 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+}
+
+/* Navigation */
+.carpem-navbar {
+    background: linear-gradient(90deg, var(--carpem-blue) 0%, var(--carpem-dark-blue) 100%);
+    box-shadow: 0 2px 10px rgba(0, 158, 224, 0.2);
+}
+
+.carpem-navbar .navbar-brand,
+.carpem-navbar .nav-link {
+    color: white !important;
+    transition: all 0.3s ease;
+}
+
+.carpem-navbar .nav-link:hover {
+    color: var(--carpem-light-blue) !important;
+    transform: translateY(-1px);
+}
+
+/* Logo Styling */
+.carpem-logo {
+    height: 35px;
+    width: auto;
+    filter: brightness(0) invert(1);
+    transition: all 0.3s ease;
+}
+
+.carpem-logo:hover {
+    transform: scale(1.05);
+}
+
+/* Cards */
+.carpem-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 158, 224, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.carpem-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(0, 158, 224, 0.15);
+}
+
+.carpem-card .card-header {
+    background: linear-gradient(90deg, var(--carpem-blue) 0%, var(--carpem-dark-blue) 100%);
+    color: white;
+    border: none;
+    padding: 1.5rem;
+}
+
+.carpem-card .card-body {
+    padding: 2rem;
+}
+
+/* Buttons */
+.btn-carpem {
+    background: linear-gradient(45deg, var(--carpem-blue) 0%, var(--carpem-dark-blue) 100%);
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 158, 224, 0.3);
+}
+
+.btn-carpem:hover {
+    background: linear-gradient(45deg, var(--carpem-dark-blue) 0%, var(--carpem-blue) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 158, 224, 0.4);
+    color: white;
+}
+
+.btn-outline-carpem {
+    border: 2px solid var(--carpem-blue);
+    color: var(--carpem-blue);
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    background: transparent;
+}
+
+.btn-outline-carpem:hover {
+    background: var(--carpem-blue);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 158, 224, 0.3);
+}
+
+/* Form Elements */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    padding: 12px 16px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--carpem-blue);
+    box-shadow: 0 0 0 0.2rem rgba(0, 158, 224, 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+/* ID Preview */
+.preview-id-container {
+    background: var(--carpem-light-blue);
+    border: 2px dashed var(--carpem-blue);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+}
+
+.preview-id {
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--carpem-blue);
+    display: block;
+}
+
+/* Table Styling */
+.table-carpem {
+    background: linear-gradient(90deg, var(--carpem-blue) 0%, var(--carpem-dark-blue) 100%);
+    color: white;
+}
+
+.table-carpem th {
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background-color: rgba(0, 158, 224, 0.05);
+}
+
+.table-hover > tbody > tr:hover > td {
+    background-color: rgba(0, 158, 224, 0.1);
+}
+
+.text-carpem {
+    color: var(--carpem-blue) !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .carpem-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .btn-carpem, .btn-outline-carpem {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+    
+    .preview-id {
+        font-size: 1rem;
+    }
+}
+
+/* Alert Styling */
+.alert {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.alert-success {
+    background: linear-gradient(45deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+}
+
+.alert-danger {
+    background: linear-gradient(45deg, #f8d7da 0%, #f1b0b7 100%);
+    color: #721c24;
+}
+
+.alert-warning {
+    background: linear-gradient(45deg, #fff3cd 0%, #ffeaa7 100%);
+    color: #856404;
+}
