@@ -14,8 +14,6 @@
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="{{ url_for('admin.list_users') }}">Gérer les Utilisateurs</a></li>
                     <li><a class="dropdown-item" href="{{ url_for('admin.create_user') }}">Créer Utilisateur</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="{{ url_for('admin.system_info') }}">Informations Système</a></li>
                 </ul>
             </div>
         </div>
@@ -45,6 +43,14 @@
             <div class="card-body">
                 <h5 class="card-title text-warning">Administrateurs</h5>
                 <h2 class="text-warning">{{ stats.admin_users }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-danger">
+            <div class="card-body">
+                <h5 class="card-title text-danger">Investigateurs</h5>
+                <h2 class="text-danger">{{ stats.pi_users }}</h2>
             </div>
         </div>
     </div>
@@ -97,7 +103,11 @@
                                     <td>
                                         {% if user.is_admin %}
                                             <span class="badge bg-warning">Admin</span>
-                                        {% else %}
+                                        {% endif %}
+                                        {% if user.is_principal_investigator %}
+                                            <span class="badge bg-danger">PI</span>
+                                        {% endif %}
+                                        {% if not user.is_admin and not user.is_principal_investigator %}
                                             <span class="badge bg-primary">Utilisateur</span>
                                         {% endif %}
                                     </td>
@@ -145,13 +155,6 @@
                         <div class="d-grid">
                             <a href="{{ url_for('admin.list_users') }}" class="btn btn-primary">
                                 <i class="bi bi-people"></i> Gérer les Utilisateurs
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="d-grid">
-                            <a href="{{ url_for('admin.system_info') }}" class="btn btn-info">
-                                <i class="bi bi-info-circle"></i> Informations Système
                             </a>
                         </div>
                     </div>

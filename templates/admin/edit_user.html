@@ -39,6 +39,16 @@
                         </div>
                     </div>
                     
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_principal_investigator(class="form-check-input") }}
+                            {{ form.is_principal_investigator.label(class="form-check-label") }}
+                        </div>
+                        <div class="form-text">
+                            Les investigateurs principaux peuvent voir tous les patients
+                        </div>
+                    </div>
+                    
                     <hr>
                     
                     <h6><i class="bi bi-key"></i> Réinitialisation du Mot de Passe</h6>
@@ -108,6 +118,9 @@
                         {% endif %}
                         {% if user.is_admin %}
                             <span class="badge bg-warning ms-1">Administrateur</span>
+                        {% endif %}
+                        {% if user.is_principal_investigator %}
+                            <span class="badge bg-danger ms-1">Investigateur Principal</span>
                         {% endif %}
                     </dd>
                 </dl>

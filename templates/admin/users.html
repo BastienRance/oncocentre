@@ -55,7 +55,11 @@
                                     <td>
                                         {% if user.is_admin %}
                                             <span class="badge bg-warning">Administrateur</span>
-                                        {% else %}
+                                        {% endif %}
+                                        {% if user.is_principal_investigator %}
+                                            <span class="badge bg-danger">Investigateur Principal</span>
+                                        {% endif %}
+                                        {% if not user.is_admin and not user.is_principal_investigator %}
                                             <span class="badge bg-primary">Utilisateur</span>
                                         {% endif %}
                                     </td>
@@ -120,6 +124,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                 <form id="deleteForm" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="btn btn-danger" id="deleteButton">Supprimer</button>
                 </form>
             </div>

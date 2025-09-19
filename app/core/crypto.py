@@ -7,7 +7,9 @@ import os
 
 def get_encryption_key():
     """Get or create encryption key for database fields"""
-    key_path = 'encryption.key'
+    key_path = 'config/encryption.key'
+    # Ensure config directory exists
+    os.makedirs('config', exist_ok=True)
     if os.path.exists(key_path):
         with open(key_path, 'rb') as key_file:
             return key_file.read()

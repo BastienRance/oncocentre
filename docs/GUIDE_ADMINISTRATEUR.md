@@ -77,6 +77,74 @@ export FLASK_CONFIG="production"  # ou "development"
 export SECRET_KEY="$(openssl rand -hex 32)"
 ```
 
+## 🏢 Configuration LDAP/Active Directory
+
+### Vue d'Ensemble de l'Authentification Duale
+
+L'application supporte deux méthodes d'authentification :
+- **Authentification locale** : Comptes créés dans la base de données locale
+- **Authentification LDAP** : Integration avec Active Directory ou serveurs LDAP
+
+### Configuration Interactive LDAP
+
+#### Assistant de Configuration
+```bash
+python scripts/setup_ldap.py
+```
+
+L'assistant vous guide através les étapes :
+1. **Activation LDAP** : Activer/désactiver l'authentification LDAP
+2. **Serveur LDAP** : URL du serveur (ex: `ldap://dc.company.com`)
+3. **Configuration de domaine** : Nom de domaine et DN de base
+4. **Compte de service** : Optionnel pour les recherches LDAP
+5. **Méthodes d'authentification** : Local, LDAP, ou les deux
+
+#### Fichier de Configuration
+
+Le fichier `config/.ldap_config.env` est créé automatiquement :
+```bash
+# Configuration LDAP pour CARPEM Oncocentre
+LDAP_ENABLED=true
+LDAP_SERVER=ldap://dc.company.com
+LDAP_PORT=389
+LDAP_USE_SSL=false
+LDAP_DOMAIN=COMPANY
+LDAP_BASE_DN=DC=company,DC=com
+LDAP_USER_SEARCH_BASE=OU=Users,DC=company,DC=com
+LDAP_USER_SEARCH_FILTER=(sAMAccountName={username})
+LDAP_BIND_USER=CN=ServiceAccount,OU=ServiceAccounts,DC=company,DC=com
+LDAP_BIND_PASSWORD=MotDePasseServiceAccount
+LDAP_TIMEOUT=10
+ALLOW_LOCAL_AUTH=true
+ALLOW_LDAP_AUTH=true
+AUTO_CREATE_LDAP_USERS=true
+```
+
+### Test de la Connexion LDAP
+
+#### Via l'Interface Web
+1. Connectez-vous en tant qu'administrateur
+2. Accédez à **Administration → Informations Système**
+3. Cliquez sur **"Tester la connexion LDAP"**
+
+#### Via Ligne de Commande
+```bash
+python utils/load_ldap_config.py
+```
+
+### Gestion des Utilisateurs LDAP
+
+#### Création Automatique
+- Les utilisateurs LDAP sont créés automatiquement à leur première connexion
+- Les informations (nom, prénom, email) sont synchronisées depuis LDAP
+- L'utilisateur doit toujours être dans la liste `AUTHORIZED_USERS`
+
+#### Migration de la Base de Données
+Pour ajouter le support LDAP à une installation existante :
+```bash
+python migrations/add_ldap_fields.py
+```
+
 ### Configuration HTTPS
 
 #### Certificats Auto-Signés (Développement)
@@ -227,6 +295,35 @@ print('Clé chargée:', len(ENCRYPTION_KEY), 'bytes')
 | `BuildError` | Route inexistante | Vérifier les URL dans les templates |
 | `403 Forbidden` | Permissions insuffisantes | Vérifier les droits administrateur |
 | `500 Internal Error` | Erreur applicative | Consulter les logs détaillés |
+| `LDAP connection failed` | Serveur LDAP inaccessible | Vérifier la config et la connectivité réseau |
+| `LDAP authentication failed` | Identifiants incorrects | Tester avec un compte valide |
+| `ModuleNotFoundError: dotenv` | Dépendance manquante | `pip install python-dotenv` |
+
+### Dépannage LDAP Spécifique
+
+**Configuration LDAP non trouvée :**
+```bash
+# Vérifier l'existence du fichier de config
+ls -la config/.ldap_config.env
+
+# Tester le chargement de la configuration
+python utils/load_ldap_config.py
+```
+
+**Test de connectivité LDAP :**
+```bash
+# Test basique de résolution DNS
+nslookup dc.company.com
+
+# Test de connexion au port LDAP
+telnet dc.company.com 389
+
+# Test via l'application
+python -c "
+from app.utils.ldap_auth import ldap_auth
+print(ldap_auth.test_connection())
+"
+```
 
 ## 📈 Monitoring et Journalisation
 
@@ -281,13 +378,24 @@ Les logs incluent automatiquement :
 - [ ] Python 3.11+ installé
 - [ ] Dépendances installées (`pip install -r requirements.txt`)
 - [ ] Variables d'environnement configurées
+- [ ] LDAP configuré (si nécessaire) : `python scripts/setup_ldap.py`
+- [ ] Migration LDAP appliquée (si upgrade) : `python migrations/add_ldap_fields.py`
 - [ ] Base de données initialisée
 - [ ] Utilisateurs de test créés
 - [ ] Privilèges administrateur accordés
 
+### Structure des Fichiers
+- [ ] `config/` : Configuration et clés sensibles (git-ignored)
+- [ ] `ssl/` : Certificats SSL (git-ignored)
+- [ ] `tests/` : Tous les fichiers de test
+- [ ] `scripts/` : Scripts de gestion et configuration
+- [ ] `utils/` : Modules utilitaires globaux
+
 ### Sécurité
 - [ ] SECRET_KEY forte définie
 - [ ] AUTHORIZED_USERS configuré
+- [ ] Configuration LDAP sécurisée (`config/.ldap_config.env`)
+- [ ] Clé de chiffrement protégée (`config/encryption.key`)
 - [ ] Certificats SSL en place (production)
 - [ ] Pare-feu configuré
 - [ ] Stratégie de sauvegarde définie

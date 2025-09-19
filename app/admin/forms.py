@@ -11,7 +11,7 @@ def check_username_exists(username):
     """Check if username exists using direct database access as fallback"""
     try:
         # Try SQLAlchemy first
-        from app.models import User
+        from ..core.models import User
         user = User.query.filter_by(username=username).first()
         return user is not None
     except Exception:
@@ -32,6 +32,7 @@ class CreateUserForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired()])
     is_admin = BooleanField('Administrator privileges')
+    is_principal_investigator = BooleanField('Principal investigator privileges')
     submit = SubmitField('Create User')
     
     def validate_username(self, username):
@@ -46,6 +47,7 @@ class EditUserForm(FlaskForm):
     """User editing form for administrators"""
     is_active = BooleanField('Account active')
     is_admin = BooleanField('Administrator privileges')
+    is_principal_investigator = BooleanField('Principal investigator privileges')
     reset_password = PasswordField('New Password (leave blank to keep current)')
     confirm_password = PasswordField('Confirm New Password')
     submit = SubmitField('Update User')

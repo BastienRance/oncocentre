@@ -20,6 +20,25 @@ L'application est accessible via votre navigateur web aux adresses suivantes :
 4. Saisissez vos identifiants :
    - **Nom d'utilisateur** : votre identifiant fourni par l'administrateur
    - **Mot de passe** : votre mot de passe personnel
+   - **Méthode d'authentification** : choisissez parmi les options disponibles
+
+### 🔑 Méthodes d'Authentification
+
+L'application supporte plusieurs méthodes d'authentification :
+
+#### **Auto-détection (Recommandée)**
+- Tente d'abord l'authentification locale
+- En cas d'échec, essaie automatiquement l'authentification LDAP
+- Option idéale pour la plupart des utilisateurs
+
+#### **Compte Local**
+- Utilise uniquement les comptes créés localement dans l'application
+- Mots de passe stockés de manière sécurisée dans la base de données
+
+#### **LDAP/Active Directory**
+- Utilise vos identifiants institutionnels
+- Se connecte au serveur LDAP/Active Directory de l'organisation
+- Création automatique de votre profil local à la première connexion
 
 ### Comptes de Test (Environnement de Développement)
 
@@ -222,12 +241,26 @@ La liste affiche pour chaque utilisateur :
 
 **Je ne peux pas me connecter :**
 - Vérifiez votre nom d'utilisateur et mot de passe
+- Essayez différentes méthodes d'authentification :
+  - Si vous avez un compte local, utilisez "Compte Local"
+  - Si vous utilisez vos identifiants institutionnels, utilisez "LDAP/Active Directory"
+  - En cas de doute, utilisez "Auto-détection"
 - Assurez-vous que votre compte est dans la liste des utilisateurs autorisés
 - Contactez votre administrateur si le problème persiste
 
 **Message "Accès non autorisé" :**
 - Votre nom d'utilisateur n'est pas dans la liste des utilisateurs autorisés
 - Contactez l'administrateur pour être ajouté à la liste
+
+**Problèmes spécifiques à l'authentification LDAP :**
+- Vérifiez que vous utilisez vos identifiants institutionnels corrects
+- Le serveur LDAP doit être accessible et configuré
+- Contactez l'administrateur système si l'authentification LDAP ne fonctionne pas
+
+**Mon compte LDAP se connecte mais je n'ai pas accès :**
+- L'authentification LDAP peut réussir mais votre nom d'utilisateur doit toujours être autorisé
+- Votre profil local est créé automatiquement à la première connexion LDAP
+- Contactez l'administrateur pour être ajouté à la liste des utilisateurs autorisés
 
 ### Problèmes de Fonctionnement
 

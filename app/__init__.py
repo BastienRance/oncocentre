@@ -22,7 +22,7 @@ def create_app(config_name='default'):
     app.config.from_object(config[config_name])
     
     # Initialize extensions
-    from .models import db
+    from .core.models import db
     db.init_app(app)
     
     # Initialize Flask-Login
@@ -35,7 +35,7 @@ def create_app(config_name='default'):
     @login_manager.user_loader
     def load_user(user_id):
         # Try SQLAlchemy first, fallback to direct database access
-        from .models import User
+        from .core.models import User
         try:
             return User.query.get(int(user_id))
         except Exception:
@@ -78,7 +78,9 @@ def create_app(config_name='default'):
                 return None
     
     # Register blueprints
-    from .views import main_bp, auth_bp, admin_bp
+    from .auth import auth_bp
+    from .patient import main_bp
+    from .admin import admin_bp
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')

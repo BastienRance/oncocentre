@@ -5,8 +5,8 @@ Administrative routes for user management
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from functools import wraps
-from ..models import User, Patient, db
-from ..forms import CreateUserForm, EditUserForm
+from ..core.models import User, Patient, db
+from .forms import CreateUserForm, EditUserForm
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -27,13 +27,17 @@ def dashboard():
     total_users = User.query.count()
     active_users = User.query.filter_by(is_active=True).count()
     admin_users = User.query.filter_by(is_admin=True).count()
+    pi_users = User.query.filter_by(is_principal_investigator=True).count()
     total_patients = Patient.query.count()
+    recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
     
     stats = {
         'total_users': total_users,
         'active_users': active_users,
         'admin_users': admin_users,
-        'total_patients': total_patients
+        'pi_users': pi_users,
+        'total_patients': total_patients,
+        'recent_users': recent_users
     }
     
     return render_template('admin/dashboard.html', stats=stats)
@@ -56,7 +60,8 @@ def create_user():
     if form.validate_on_submit():
         user = User(
             username=form.username.data,
-            is_admin=form.is_admin.data
+            is_admin=form.is_admin.data,
+            is_principal_investigator=form.is_principal_investigator.data
         )
         user.set_password(form.password.data)
         
@@ -82,6 +87,7 @@ def edit_user(user_id):
     if form.validate_on_submit():
         user.is_active = form.is_active.data
         user.is_admin = form.is_admin.data
+        user.is_principal_investigator = form.is_principal_investigator.data
         
         if form.reset_password.data:
             user.set_password(form.reset_password.data)
@@ -97,6 +103,7 @@ def edit_user(user_id):
         # Pre-populate form with current values
         form.is_active.data = user.is_active
         form.is_admin.data = user.is_admin
+        form.is_principal_investigator.data = user.is_principal_investigator
     
     return render_template('admin/edit_user.html', form=form, user=user)
 
@@ -128,18 +135,4 @@ def delete_user(user_id):
     
     return redirect(url_for('admin.list_users'))
 
-@admin_bp.route('/system-info')
-@login_required
-@admin_required
-def system_info():
-    """Display system information"""
-    import os
-    
-    info = {
-        'encryption_key_exists': os.path.exists('encryption.key'),
-        'database_path': 'instance/oncocentre.db',
-        'authorized_users': os.environ.get('AUTHORIZED_USERS', 'Not set'),
-        'flask_env': os.environ.get('FLASK_ENV', 'development')
-    }
-    
-    return render_template('admin/system_info.html', info=info)
+# System info page removed as per specification

@@ -1,0 +1,14 @@
+<instruction>
+Update the application with the following rules:
+* The administrator is not allowed to create patient or view the list of patient
+* The "Système" page should be removed
+* The principal investigator can access the list of all patients
+</instruction>
+<optimization>
+* In the page "Créer un identifiant", the focus should go pass to the fields (IPP, Sex, First name, Last name, Birth Date) in that order
+* Replace "Aperçu de l'identifiant suivant" by "Identifiant temporaire"
+</optimization>
+<bug>
+* The delete user button does not work
+* When a unauthorized user tries to log the error message lists authorized users. That is a security breach.
+</bug>

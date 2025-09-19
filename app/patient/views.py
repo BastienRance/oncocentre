@@ -4,9 +4,9 @@ Main application routes for patient management
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from ..models import Patient, db
-from ..utils import generate_oncocentre_id, validate_patient_data
-from ..forms import PatientForm
+from ..core.models import Patient, db
+from ..core import generate_oncocentre_id, validate_patient_data
+from .forms import PatientForm
 
 main_bp = Blueprint('main', __name__)
 
@@ -14,8 +14,13 @@ main_bp = Blueprint('main', __name__)
 @login_required
 def index():
     """Main page with patient identifier creation form"""
+    # Admins cannot create patients
+    if current_user.is_admin:
+        flash('Administrators cannot create patient identifiers. Please use a regular user account.', 'warning')
+        return redirect(url_for('admin.dashboard'))
+    
     form = PatientForm()
-    return render_template('index.html', form=form)
+    return render_template('main/index.html', form=form)
 
 @main_bp.route('/preview_id', methods=['POST'])
 @login_required
@@ -31,6 +36,11 @@ def preview_id():
 @login_required
 def create_patient():
     """Create a new patient with oncocentre identifier"""
+    # Admins cannot create patients
+    if current_user.is_admin:
+        flash('Administrators cannot create patient identifiers.', 'error')
+        return redirect(url_for('admin.dashboard'))
+        
     form = PatientForm()
     
     if form.validate_on_submit():
@@ -81,6 +91,17 @@ def create_patient():
 @main_bp.route('/patients')
 @login_required
 def list_patients():
-    """List patients created by the current user only"""
-    patients = Patient.query.filter_by(created_by=current_user.id).order_by(Patient.created_at.desc()).all()
-    return render_template('patients.html', patients=patients)
+    """List patients - all for principal investigators, own for users, none for admins"""
+    # Admins cannot view patients
+    if current_user.is_admin and not current_user.is_principal_investigator:
+        flash('Administrators cannot view patient lists. Please use a regular user account.', 'warning')
+        return redirect(url_for('admin.dashboard'))
+    
+    # Principal investigators see all patients
+    if current_user.is_principal_investigator:
+        patients = Patient.query.order_by(Patient.created_at.desc()).all()
+    else:
+        # Regular users see only their own patients
+        patients = Patient.query.filter_by(created_by=current_user.id).order_by(Patient.created_at.desc()).all()
+    
+    return render_template('main/patients.html', patients=patients, is_pi=current_user.is_principal_investigator)

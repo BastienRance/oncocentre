@@ -1,5 +1,5 @@
 from datetime import datetime
-from models import Patient, db
+from .models import Patient, db
 
 def generate_oncocentre_id():
     """Generate the next ONCOCENTRE identifier following the format ONCOCENTRE_YYYY_NNNNN"""
