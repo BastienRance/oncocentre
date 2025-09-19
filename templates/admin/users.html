@@ -61,9 +61,7 @@
                                     </td>
                                     <td>
                                         {% if user.patient_count > 0 %}
-                                            <a href="{{ url_for('admin.user_patients', user_id=user.id) }}" class="text-decoration-none">
-                                                {{ user.patient_count }} patient{{ 's' if user.patient_count > 1 else '' }}
-                                            </a>
+                                            <span class="text-success">{{ user.patient_count }} patient{{ 's' if user.patient_count > 1 else '' }}</span>
                                         {% else %}
                                             <span class="text-muted">0 patient</span>
                                         {% endif %}
