@@ -48,7 +48,9 @@ oncocentre/
 ├── docs/                        # Documentation
 │   ├── INSTALLATION_GUIDE.md
 │   ├── SECURITY_DEPLOYMENT.md
-│   └── ADMIN_IMPLEMENTATION_SUMMARY.md
+│   ├── ADMIN_IMPLEMENTATION_SUMMARY.md
+│   ├── GUIDE_UTILISATEUR.md         # French user documentation
+│   └── GUIDE_ADMINISTRATEUR.md      # French admin documentation
 ├── templates/                   # Jinja2 templates
 ├── static/                      # CSS/JS assets
 ├── run.py                       # Application entry point
@@ -249,3 +251,14 @@ This codebase has been refactored from a flat file structure to a modular Flask 
 4. **Centralized Configuration**: All settings in `app/config.py`
 5. **Organized Scripts**: Management and migration scripts in dedicated directories
 6. **Proper Testing**: Test files organized by functionality
+7. **User Documentation**: Comprehensive French documentation for end users and administrators
+
+## Documentation
+
+### Available Documentation Files
+
+- **`GUIDE_UTILISATEUR.md`**: Complete French user manual covering login, patient creation, and all user features
+- **`GUIDE_ADMINISTRATEUR.md`**: French administrator guide covering installation, user management, security, and maintenance
+- **`INSTALLATION_GUIDE.md`**: Technical installation and setup instructions
+- **`SECURITY_DEPLOYMENT.md`**: Security features and deployment guidelines
+- **`ADMIN_IMPLEMENTATION_SUMMARY.md`**: Technical overview of admin features
