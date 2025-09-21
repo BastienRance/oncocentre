@@ -34,9 +34,9 @@
                                     <td>{{ patient.ipp }}</td>
                                     <td>{{ patient.last_name }}</td>
                                     <td>{{ patient.first_name }}</td>
-                                    <td>{{ patient.birth_date.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ patient.birth_date.strftime('%d/%m/%Y') if patient.birth_date else 'N/A' }}</td>
                                     <td>{{ patient.sex }}</td>
-                                    <td>{{ patient.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>{{ patient.created_at.strftime('%d/%m/%Y %H:%M') if patient.created_at else 'N/A' }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

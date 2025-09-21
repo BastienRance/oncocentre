@@ -5,7 +5,7 @@ Administrative routes for user management
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from functools import wraps
-from ..core.models import User, Patient, db
+from ..core.models import User, Patient, WhitelistEntry, db
 from .forms import CreateUserForm, EditUserForm
 
 admin_bp = Blueprint('admin', __name__)
@@ -136,3 +136,82 @@ def delete_user(user_id):
     return redirect(url_for('admin.list_users'))
 
 # System info page removed as per specification
+
+@admin_bp.route('/whitelist')
+@login_required
+@admin_required
+def manage_whitelist():
+    """Manage user whitelist"""
+    # Get all whitelist entries
+    whitelist_entries = WhitelistEntry.query.order_by(WhitelistEntry.created_at.desc()).all()
+
+    # Get current environment whitelist for comparison
+    from ..auth.views import get_authorized_users
+    env_whitelist = get_authorized_users()
+
+    return render_template('admin/whitelist.html',
+                         whitelist_entries=whitelist_entries,
+                         env_whitelist=env_whitelist)
+
+@admin_bp.route('/whitelist/add', methods=['POST'])
+@login_required
+@admin_required
+def add_to_whitelist():
+    """Add username to whitelist"""
+    username = request.form.get('username', '').strip()
+    description = request.form.get('description', '').strip()
+
+    if not username:
+        flash('Username is required', 'error')
+        return redirect(url_for('admin.manage_whitelist'))
+
+    # Add to whitelist
+    entry = WhitelistEntry.add_username(username, current_user.id, description)
+
+    if entry:
+        flash(f'Username "{username}" added to whitelist successfully!', 'success')
+    else:
+        flash(f'Username "{username}" is already in the whitelist', 'warning')
+
+    return redirect(url_for('admin.manage_whitelist'))
+
+@admin_bp.route('/whitelist/remove/<username>')
+@login_required
+@admin_required
+def remove_from_whitelist(username):
+    """Remove username from whitelist"""
+    if WhitelistEntry.remove_username(username):
+        flash(f'Username "{username}" removed from whitelist', 'success')
+    else:
+        flash(f'Username "{username}" not found in whitelist', 'error')
+
+    return redirect(url_for('admin.manage_whitelist'))
+
+@admin_bp.route('/whitelist/activate/<username>')
+@login_required
+@admin_required
+def activate_whitelist_entry(username):
+    """Reactivate a deactivated whitelist entry"""
+    entry = WhitelistEntry.query.filter_by(username=username).first()
+    if entry:
+        entry.is_active = True
+        db.session.commit()
+        flash(f'Username "{username}" reactivated in whitelist', 'success')
+    else:
+        flash(f'Username "{username}" not found', 'error')
+
+    return redirect(url_for('admin.manage_whitelist'))
+
+@admin_bp.route('/whitelist/migrate')
+@login_required
+@admin_required
+def migrate_env_whitelist():
+    """Migrate environment variable whitelist to database"""
+    added_count = WhitelistEntry.migrate_from_env(current_user.id)
+
+    if added_count > 0:
+        flash(f'Migrated {added_count} usernames from environment to database', 'success')
+    else:
+        flash('All environment usernames already exist in database', 'info')
+
+    return redirect(url_for('admin.manage_whitelist'))

@@ -14,6 +14,8 @@
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="{{ url_for('admin.list_users') }}">Gérer les Utilisateurs</a></li>
                     <li><a class="dropdown-item" href="{{ url_for('admin.create_user') }}">Créer Utilisateur</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{{ url_for('admin.manage_whitelist') }}">Gérer la Liste Blanche</a></li>
                 </ul>
             </div>
         </div>
@@ -111,7 +113,7 @@
                                             <span class="badge bg-primary">Utilisateur</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else 'N/A' }}</td>
                                     <td>
                                         <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
                                             <i class="bi bi-pencil"></i>
@@ -155,6 +157,13 @@
                         <div class="d-grid">
                             <a href="{{ url_for('admin.list_users') }}" class="btn btn-primary">
                                 <i class="bi bi-people"></i> Gérer les Utilisateurs
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-grid">
+                            <a href="{{ url_for('admin.manage_whitelist') }}" class="btn btn-warning">
+                                <i class="bi bi-shield-check"></i> Gérer Liste Blanche
                             </a>
                         </div>
                     </div>

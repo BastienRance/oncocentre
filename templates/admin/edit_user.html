@@ -95,7 +95,7 @@
             <div class="card-body">
                 <dl class="row">
                     <dt class="col-sm-4">Créé le:</dt>
-                    <dd class="col-sm-8">{{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</dd>
+                    <dd class="col-sm-8">{{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') if user.created_at else 'N/A' }}</dd>
                     
                     <dt class="col-sm-4">Patients créés:</dt>
                     <dd class="col-sm-8">

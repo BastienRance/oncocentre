@@ -10,7 +10,15 @@
       "Bash(del encryption.key)",
       "Bash(sqlite3:*)",
       "Bash(tree:*)",
-      "Bash(ln:*)"
+      "Bash(ln:*)",
+      "Bash(find:*)",
+      "Bash(export AUTHORIZED_USERS=\"admin,user1,pi_user,test_admin,test_user\")",
+      "Bash(AUTHORIZED_USERS=\"admin,user1,pi_user,test_admin,test_user\" python run.py)",
+      "Bash(AUTHORIZED_USERS=\"admin,user1,pi_user,test_admin,test_user\" python test_roles_http.py)",
+      "Bash(AUTHORIZED_USERS=\"admin,user1,pi_user,test_admin,test_user\" python migrate_whitelist.py)",
+      "Bash(AUTHORIZED_USERS=\"admin,user1,pi_user,test_admin,test_user\" python test_whitelist_management.py)",
+      "Bash(AUTHORIZED_USERS=\"admin,user1,pi_user,test_admin,test_user\" python tests/test_roles_http.py)",
+      "Bash(AUTHORIZED_USERS=\"admin,user1,pi_user,test_admin,test_user\" python tests/test_whitelist_management.py)"
     ],
     "deny": [],
     "ask": []

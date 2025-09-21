@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from app import create_app
-from app.models import db, User
+from app.core.models import db, User
 
 def create_test_users():
     """Create initial test users"""

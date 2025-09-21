@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion de la Liste Blanche - CARPEM Oncocentre{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-shield-check"></i> Gestion de la Liste Blanche</h2>
+            <div>
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left"></i> Retour au Dashboard
+                </a>
+                <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#migrateModal">
+                    <i class="bi bi-arrow-down-up"></i> Migrer Environment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Form -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-person-plus"></i> Ajouter un Utilisateur à la Liste Blanche</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.add_to_whitelist') }}">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="text" name="username" class="form-control" placeholder="Nom d'utilisateur" required>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" name="description" class="form-control" placeholder="Description (optionnel)">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-plus"></i> Ajouter
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Environment Whitelist Info -->
+{% if env_whitelist %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Liste Blanche de l'Environment Variable</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">Les utilisateurs suivants sont autorisés via la variable d'environnement <code>AUTHORIZED_USERS</code>:</p>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for username in env_whitelist %}
+                        <span class="badge bg-warning text-dark">{{ username }}</span>
+                    {% endfor %}
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        Utilisez le bouton "Migrer Environment" pour transférer ces utilisateurs vers la base de données.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Whitelist Entries -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-list"></i> Utilisateurs Autorisés (Base de Données)</h5>
+            </div>
+            <div class="card-body">
+                {% if whitelist_entries %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nom d'utilisateur</th>
+                                    <th>Statut</th>
+                                    <th>Description</th>
+                                    <th>Ajouté par</th>
+                                    <th>Date d'ajout</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in whitelist_entries %}
+                                <tr {% if not entry.is_active %}class="table-secondary"{% endif %}>
+                                    <td>
+                                        <strong>{{ entry.username }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if entry.is_active %}
+                                            <span class="badge bg-success">Actif</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactif</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if entry.description %}
+                                            {{ entry.description }}
+                                        {% else %}
+                                            <span class="text-muted">Aucune description</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ entry.creator.username if entry.creator else 'N/A' }}</td>
+                                    <td>{{ entry.created_at.strftime('%Y-%m-%d %H:%M') if entry.created_at else 'N/A' }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            {% if entry.is_active %}
+                                                <button type="button" class="btn btn-outline-danger"
+                                                        onclick="confirmRemove('{{ entry.username }}')"
+                                                        title="Retirer de la liste blanche">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            {% else %}
+                                                <a href="{{ url_for('admin.activate_whitelist_entry', username=entry.username) }}"
+                                                   class="btn btn-outline-success"
+                                                   title="Réactiver">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">Aucun utilisateur dans la liste blanche de la base de données.</p>
+                        <p class="text-muted">Ajoutez des utilisateurs ou migrez depuis la variable d'environnement.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Remove Confirmation Modal -->
+<div class="modal fade" id="removeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmer la Suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir retirer l'utilisateur <strong id="removeUsername"></strong> de la liste blanche ?</p>
+                <div class="alert alert-warning">
+                    <strong>Attention :</strong> Cet utilisateur ne pourra plus se connecter à l'application.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <a href="#" class="btn btn-danger" id="confirmRemoveBtn">Retirer</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Migration Confirmation Modal -->
+<div class="modal fade" id="migrateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Migrer la Liste Blanche</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Cette action va migrer tous les utilisateurs de la variable d'environnement <code>AUTHORIZED_USERS</code> vers la base de données.</p>
+                {% if env_whitelist %}
+                <p>Utilisateurs à migrer :</p>
+                <ul>
+                    {% for username in env_whitelist %}
+                        <li><code>{{ username }}</code></li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                <div class="alert alert-info">
+                    <strong>Note :</strong> Les utilisateurs déjà présents dans la base de données ne seront pas dupliqués.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <a href="{{ url_for('admin.migrate_env_whitelist') }}" class="btn btn-warning">Migrer</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmRemove(username) {
+    document.getElementById('removeUsername').textContent = username;
+    document.getElementById('confirmRemoveBtn').href = '/admin/whitelist/remove/' + encodeURIComponent(username);
+    new bootstrap.Modal(document.getElementById('removeModal')).show();
+}
+</script>
+{% endblock %}

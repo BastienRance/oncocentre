@@ -8,7 +8,7 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 
 from app import create_app
-from app.models import db, User
+from app.core.models import db, User
 
 def test_principal_investigator_role():
     """Test that principal investigator role has been added"""

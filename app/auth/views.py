@@ -18,7 +18,18 @@ auth_bp = Blueprint('auth', __name__)
 
 # Whitelist of authorized usernames
 def get_authorized_users():
-    """Get authorized users from environment variable"""
+    """Get authorized users from database first, then environment variable as fallback"""
+    try:
+        from ..core.models import WhitelistEntry
+        # Try to get from database first
+        db_users = WhitelistEntry.get_authorized_usernames()
+        if db_users:
+            return db_users
+    except Exception as e:
+        # Database might not be initialized yet, fall back to environment
+        logger.warning(f"Could not access whitelist database: {e}")
+
+    # Fallback to environment variable
     users_str = os.environ.get('AUTHORIZED_USERS', 'admin,user1,user2,doctor1,researcher1')
     return set(user.strip() for user in users_str.split(',') if user.strip())
 

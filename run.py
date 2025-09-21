@@ -5,7 +5,7 @@ Main entry point for the CARPEM Oncocentre application
 
 import os
 from app import create_app
-from utils.load_ldap_config import load_ldap_config
+from scripts.load_ldap_config import load_ldap_config
 
 # Load LDAP configuration if available
 load_ldap_config()

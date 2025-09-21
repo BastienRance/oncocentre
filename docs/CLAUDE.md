@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CARPEM Oncocentre is a Flask web application for managing patient identifier creation and access for the CARPEM biological data collection. The application generates unique identifiers following the format `ONCOCENTRE_YYYY_NNNNN` and provides a patient registry with comprehensive security features including dual authentication (Local + LDAP/Active Directory).
+CARPEM Oncocentre is a Flask web application for managing patient identifier creation and access for the CARPEM biological data collection. The application generates unique identifiers following the format `ONCOCENTRE_YYYY_NNNNN` and provides a patient registry with comprehensive security features including dual authentication (Local + LDAP/Active Directory) and database-driven whitelist management.
 
 ## Project Structure
 
@@ -14,348 +14,313 @@ The application follows a modular Flask architecture:
 oncocentre/
 ├── app/                          # Main application package
 │   ├── __init__.py              # Application factory
-│   ├── config.py                # Configuration settings (Local + LDAP)
-│   ├── models/                  # Database models
+│   ├── config.py                # Configuration settings
+│   ├── admin/                   # Admin blueprint
 │   │   ├── __init__.py
-│   │   ├── user.py              # User authentication model (dual auth support)
-│   │   └── patient.py           # Patient data model with encryption
-│   ├── views/                   # Route handlers (blueprints)
+│   │   ├── views.py             # User management & whitelist routes
+│   │   └── forms.py             # Admin forms (user creation/editing)
+│   ├── auth/                    # Authentication blueprint
 │   │   ├── __init__.py
-│   │   ├── auth.py              # Dual authentication routes (Local + LDAP)
-│   │   ├── main.py              # Patient management routes
-│   │   └── admin.py             # Administrative routes
-│   ├── forms/                   # WTForms for validation
+│   │   ├── views.py             # Dual authentication (Local + LDAP)
+│   │   └── forms.py             # Login forms
+│   ├── main/                    # Main application blueprint
 │   │   ├── __init__.py
-│   │   ├── auth.py              # Login forms with auth method selection
-│   │   ├── patient.py           # Patient creation forms
-│   │   └── admin.py             # User management forms
-│   └── utils/                   # Application utility functions
+│   │   ├── views.py             # Patient management routes
+│   │   └── forms.py             # Patient creation forms
+│   └── core/                    # Core modules
 │       ├── __init__.py
+│       ├── models.py            # All database models (User, Patient, WhitelistEntry)
 │       ├── crypto.py            # Encryption utilities
 │       ├── patient_id.py        # ID generation
+│       ├── patient.py           # Patient model re-export
+│       ├── utils.py             # Utility functions
 │       └── ldap_auth.py         # LDAP authentication module
-├── config/                      # Configuration files (git-ignored)
-│   ├── .ldap_config.env         # LDAP server configuration (sensitive)
-│   └── encryption.key           # Data encryption key (sensitive)
-├── utils/                       # Global utility modules
-│   └── load_ldap_config.py      # LDAP configuration loader
-├── ssl/                         # SSL certificates (git-ignored)
-│   ├── server.crt               # SSL certificate
-│   └── server.key               # SSL private key
-├── migrations/                  # Database management
-│   ├── migrate.py               # Database migration script
-│   ├── reset.py                 # Database reset script
-│   └── add_ldap_fields.py       # LDAP fields migration
-├── scripts/                     # Management scripts
-│   ├── create_users.py          # User creation script
-│   ├── make_admin.py            # Admin privilege management
-│   ├── run_https.py             # HTTPS server
-│   ├── setup_ldap.py            # Interactive LDAP configuration
-│   └── cleanup_old_files.py     # File cleanup utility
-├── tests/                       # Test files
-│   ├── __init__.py
-│   ├── test_auth.py             # Authentication tests
-│   ├── test_patients.py         # Patient management tests
-│   ├── test_dual_auth.py        # HTTP dual authentication tests
-│   ├── test_simple_dual_auth.py # Direct dual authentication tests
-│   └── test_refactored_app.py   # Comprehensive application tests
-├── docs/                        # Documentation
-│   ├── CLAUDE.md                # Developer documentation (this file)
-│   ├── INSTALLATION_GUIDE.md
-│   ├── SECURITY_DEPLOYMENT.md
-│   ├── ADMIN_IMPLEMENTATION_SUMMARY.md
-│   ├── GUIDE_UTILISATEUR.md     # French user documentation
-│   └── GUIDE_ADMINISTRATEUR.md  # French admin documentation
 ├── templates/                   # Jinja2 templates
-│   └── login.html              # Login form with auth method selection
-├── static/                      # CSS/JS assets
-├── instance/                    # Flask instance folder
+│   ├── base.html                # Base template
+│   ├── main/                    # Patient management templates
+│   ├── auth/                    # Authentication templates
+│   └── admin/                   # Admin interface templates
+│       ├── dashboard.html       # Admin dashboard
+│       ├── users.html           # User management
+│       ├── edit_user.html       # User editing
+│       └── whitelist.html       # Whitelist management (NEW)
+├── static/                      # Static assets
+│   ├── css/                     # Stylesheets
+│   ├── js/                      # JavaScript
+│   └── images/                  # Images
+├── scripts/                     # Utility scripts
+│   ├── migrate_whitelist.py     # Whitelist migration (NEW)
+│   ├── check_users.py           # User verification
+│   ├── create_users.py          # User creation
+│   └── load_ldap_config.py      # LDAP configuration loader
+├── tests/                       # Test suite
+│   ├── test_roles_http.py       # Comprehensive role testing
+│   ├── test_whitelist_management.py  # Whitelist testing (NEW)
+│   └── [other test files]
+├── docs/                        # Documentation
+├── instance/                    # Instance-specific data
 │   └── oncocentre.db           # SQLite database
 ├── run.py                       # Application entry point
-└── requirements.txt             # Dependencies (includes LDAP libraries)
+└── encryption.key               # Data encryption key (sensitive)
 ```
 
-## Development Setup
+## Key Features
 
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 1. Dual Authentication System
+- **Local Authentication**: Username/password stored in SQLite database
+- **LDAP/Active Directory**: Integration with institutional directory services
+- **Automatic User Creation**: LDAP users auto-created on first login
+- **User Management**: Admin interface for user creation and management
 
-2. Configure LDAP (optional):
-   ```bash
-   # Interactive LDAP setup
-   python scripts/setup_ldap.py
-   
-   # Or manually create config/.ldap_config.env with your LDAP settings
-   ```
+### 2. Database-Driven Whitelist Management (NEW)
+- **Web Interface**: Admins can manage authorized users through the web UI
+- **Migration Tool**: Seamlessly migrate from environment variables to database
+- **Audit Trail**: Track who added users and when
+- **Flexible Management**: Add descriptions, temporarily deactivate users
+- **Backward Compatible**: Falls back to `AUTHORIZED_USERS` environment variable
 
-3. Create initial users and admin:
-   ```bash
-   python scripts/create_users.py
-   python scripts/make_admin.py admin
-   ```
+### 3. Patient Data Management
+- **Unique ID Generation**: `ONCOCENTRE_YYYY_NNNNN` format
+- **Encrypted Storage**: PII encrypted using Fernet encryption
+- **Role-Based Access**: Different access levels for users, PIs, and admins
+- **Data Integrity**: Foreign key relationships and validation
 
-4. Run database migrations (if upgrading):
-   ```bash
-   python migrations/add_ldap_fields.py
-   ```
+### 4. Security Features
+- **Role-Based Access Control**: Admin, Principal Investigator, Regular User roles
+- **CSRF Protection**: Forms protected against cross-site request forgery
+- **Password Hashing**: bcrypt for secure password storage
+- **Session Management**: Flask-Login for secure session handling
+- **Environment-Based Whitelisting**: Production-ready access control
 
-5. Run the application:
-   ```bash
-   # Development (HTTP)
-   python run.py
-   
-   # Production (HTTPS)
-   python scripts/run_https.py
-   ```
+## Database Models
 
-Application URLs:
-- HTTP: `http://localhost:5000`
-- HTTPS: `https://localhost:5000`
-- Login: `/auth/login`
+### User Model (`app/core/models.py`)
+```python
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=True)  # Nullable for LDAP users
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    is_principal_investigator = db.Column(db.Boolean, default=False, nullable=False)
+    auth_source = db.Column(db.String(20), default='local', nullable=False)  # 'local' or 'ldap'
+    # LDAP fields for directory integration
+    email, first_name, last_name, display_name, ldap_dn, last_ldap_sync
+```
 
-## Architecture Overview
+### Patient Model (`app/core/models.py`)
+```python
+class Patient(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    oncocentre_id = db.Column(db.String(50), unique=True, nullable=False)
+    ipp_encrypted = db.Column(db.LargeBinary, nullable=False)  # Encrypted IPP
+    # All PII fields are encrypted at rest
+    first_name_encrypted, last_name_encrypted, birth_date_encrypted, sex
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+```
 
-### Application Factory Pattern
-The application uses Flask's application factory pattern in `app/__init__.py`, allowing for different configurations (development, testing, production).
+### WhitelistEntry Model (`app/core/models.py`) - NEW
+```python
+class WhitelistEntry(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    description = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+```
 
-### Modular Design
-- **Models**: Database models split by entity (`user.py`, `patient.py`)
-- **Views**: Route handlers organized by functionality (`auth.py`, `main.py`, `admin.py`)
-- **Forms**: Form classes grouped by purpose (`auth.py`, `patient.py`, `admin.py`)
-- **Utils**: Utility functions separated by domain (`crypto.py`, `patient_id.py`)
+## Authentication Flow
 
-### Security Architecture
+1. **User Access**: Application checks if username is in whitelist (database first, then environment variable)
+2. **Method Selection**: User selects authentication method (Local or LDAP)
+3. **Local Auth**: Credentials verified against SQLite database
+4. **LDAP Auth**: Credentials verified against LDAP/AD server
+5. **User Creation**: LDAP users auto-created in local database on first login
+6. **Session Creation**: Flask-Login manages user session
 
-**Data Encryption**: Field-level encryption using Fernet symmetric encryption:
-- Patient IPP (identifiant permanent du patient)
-- First/last names
-- Birth dates
-- Encryption key automatically generated and stored in `config/encryption.key`
+## Whitelist Management (NEW FEATURE)
 
-**Dual Authentication System**: Supports both local and LDAP/Active Directory authentication:
-- **Auto-detect Mode**: Tries local authentication first, falls back to LDAP
-- **Local Authentication**: Bcrypt-hashed passwords stored in local database
-- **LDAP Authentication**: Integration with Active Directory/OpenLDAP servers
-- **User Auto-creation**: LDAP users automatically created in local database on first login
-- **User Synchronization**: User information updated from LDAP on each login
+### Database-First Approach
+The application now prioritizes database whitelist over environment variables:
 
-**Authentication Flow**:
-1. User selects authentication method (Auto-detect, Local, or LDAP) on login form
-2. Credentials validated according to selected method
-3. Username checked against `AUTHORIZED_USERS` environment variable whitelist
-4. User account status (`is_active`) verified
-5. Flask-Login session management with fallback direct database access
+```python
+def get_authorized_users():
+    """Get authorized users from database first, then environment variable as fallback"""
+    try:
+        from ..core.models import WhitelistEntry
+        db_users = WhitelistEntry.get_authorized_usernames()
+        if db_users:
+            return db_users
+    except Exception:
+        # Fall back to environment variable
+        pass
+    users_str = os.environ.get('AUTHORIZED_USERS', 'admin,user1,user2,doctor1,researcher1')
+    return set(user.strip() for user in users_str.split(',') if user.strip())
+```
 
-**Authorization Levels**:
-- Regular users: Access only their own patient records
-- Admin users: Full user management through web interface
-- User isolation enforced at database query level
+### Admin Interface
+- **Access**: `/admin/whitelist` (admin only)
+- **Add Users**: Simple form with username and optional description
+- **Remove Users**: Deactivate users (preserves audit trail)
+- **Reactivate**: Restore previously deactivated users
+- **Migration**: One-click migration from environment variables
 
-### Database Schema
-
-SQLite with two main tables:
-
-**User Table** (`app/models/user.py`):
-- Authentication and authorization fields
-- `is_admin` boolean for role-based access
-- `is_active` for account management
-- `auth_source` field ('local' or 'ldap')
-- LDAP-specific fields: `email`, `first_name`, `last_name`, `display_name`, `ldap_dn`, `last_ldap_sync`
-- Bcrypt password hashing for local users (nullable for LDAP users)
-
-**Patient Table** (`app/models/patient.py`):
-- Encrypted sensitive fields with property-based access
-- `created_by` foreign key for user isolation
-- `oncocentre_id` unique identifier generation
-
-## Common Commands
-
-### Development Commands
+### Migration Process
 ```bash
-# Start development server
+# Migrate existing environment whitelist to database
+python scripts/migrate_whitelist.py
+```
+
+## Development Workflow
+
+### Running the Application
+```bash
+# Set environment variables
+export AUTHORIZED_USERS="admin,user1,user2,doctor1,researcher1"
+
+# Run development server
 python run.py
 
-# Start secure HTTPS server  
-python scripts/run_https.py
+# Access application
+# http://localhost:5000
+```
 
-# Create test users (admin/admin123, user1/user1123, etc.)
+### Testing
+```bash
+# Run comprehensive role tests
+python tests/test_roles_http.py
+
+# Test whitelist management
+python tests/test_whitelist_management.py
+
+# Test all functionality
+python tests/test_specifications.py
+```
+
+### User Management
+```bash
+# Check current users
+python scripts/check_users.py
+
+# Create test users
 python scripts/create_users.py
 
-# Grant admin privileges
-python scripts/make_admin.py <username>
-
-# List admin users
-python scripts/make_admin.py list
+# Migrate whitelist to database
+python scripts/migrate_whitelist.py
 ```
 
-### LDAP Configuration Commands
+## Configuration
+
+### Environment Variables
 ```bash
-# Interactive LDAP setup
-python scripts/setup_ldap.py
+# Required
+AUTHORIZED_USERS="admin,user1,user2,doctor1,researcher1"  # Whitelist (fallback)
 
-# Load LDAP configuration (for testing)
-python utils/load_ldap_config.py
-
-# Test LDAP connection (via admin interface at /auth/ldap-test)
+# Optional LDAP configuration
+LDAP_SERVER="ldap://your-ldap-server.com"
+LDAP_BASE_DN="dc=your-domain,dc=com"
+LDAP_USER_DN="cn=users,dc=your-domain,dc=com"
+LDAP_BIND_USER="service-account@your-domain.com"
+LDAP_BIND_PASSWORD="service-password"
 ```
 
-### Database Management
+### LDAP Configuration File (Optional)
+Create `config/.ldap_config.env`:
+```
+LDAP_SERVER=ldap://your-ldap-server.com
+LDAP_BASE_DN=dc=your-domain,dc=com
+LDAP_USER_DN=cn=users,dc=your-domain,dc=com
+LDAP_BIND_USER=service-account@your-domain.com
+LDAP_BIND_PASSWORD=service-password
+```
+
+## Key Routes
+
+### Authentication
+- `GET /auth/login` - Login page with method selection
+- `POST /auth/login` - Process login (local or LDAP)
+- `GET /auth/logout` - Logout and session cleanup
+
+### Main Application
+- `GET /` - Patient creation form (authenticated users only)
+- `POST /` - Create new patient identifier
+- `GET /patients` - Patient list (role-based access)
+
+### Admin Interface
+- `GET /admin/dashboard` - Admin dashboard with statistics
+- `GET /admin/users` - User management interface
+- `GET /admin/users/create` - Create new user
+- `GET /admin/users/<id>/edit` - Edit existing user
+- `POST /admin/users/<id>/delete` - Delete/deactivate user
+- `GET /admin/whitelist` - **NEW** Whitelist management interface
+- `POST /admin/whitelist/add` - **NEW** Add user to whitelist
+- `GET /admin/whitelist/remove/<username>` - **NEW** Remove user from whitelist
+- `GET /admin/whitelist/migrate` - **NEW** Migrate environment to database
+
+## Security Considerations
+
+### Access Control
+1. **Whitelist Enforcement**: Only whitelisted users can access the application
+2. **Role-Based Permissions**: Different access levels for different user types
+3. **Admin Restrictions**: Admins cannot create patient identifiers
+4. **PI Enhanced Access**: Principal Investigators can view all patients
+
+### Data Protection
+1. **Encryption at Rest**: All PII encrypted using Fernet symmetric encryption
+2. **Secure Sessions**: Flask-Login with secure session management
+3. **CSRF Protection**: All forms protected against CSRF attacks
+4. **Input Validation**: Comprehensive form validation using WTForms
+
+### LDAP Security
+1. **Secure Binding**: Service account for LDAP authentication
+2. **SSL/TLS Support**: Encrypted LDAP connections (ldaps://)
+3. **User Validation**: LDAP users validated against local whitelist
+4. **Auto-sync**: LDAP user information synchronized on login
+
+## Recent Updates
+
+### Version 2.0 - Whitelist Management System
+- **Database-Driven Whitelist**: Complete whitelist management through web interface
+- **Migration Tools**: Seamless migration from environment variables
+- **Audit Trail**: Track whitelist changes with timestamps and creators
+- **Admin Interface**: User-friendly whitelist management in admin dashboard
+- **Backward Compatibility**: Maintains compatibility with environment variable approach
+
+### Code Restructuring
+- **Cleaned Architecture**: Removed obsolete files and directories
+- **Organized Structure**: Moved test files and scripts to proper directories
+- **Updated Imports**: Fixed all import statements after reorganization
+- **Documentation Update**: Comprehensive documentation reflecting current state
+
+## Troubleshooting
+
+### Common Issues
+1. **Import Errors**: Ensure all modules are in correct directories after restructuring
+2. **LDAP Connection**: Check LDAP server connectivity and credentials
+3. **Whitelist Issues**: Verify users are in database whitelist or environment variable
+4. **Database Issues**: Run `python scripts/migrate_whitelist.py` to initialize whitelist table
+
+### Logs and Debugging
+- Application logs authentication attempts and errors
+- Use `python scripts/check_users.py` to verify user database state
+- Test whitelist functionality with `python tests/test_whitelist_management.py`
+
+## Production Deployment
+
+### Database Migration
 ```bash
-# Reset database completely
-python migrations/reset.py
-
-# Migrate existing database (adds admin features)
-python migrations/migrate.py
-
-# Add LDAP fields to existing User table
-python migrations/add_ldap_fields.py
+# Initialize whitelist table and migrate environment users
+python scripts/migrate_whitelist.py
 ```
 
-### Testing Commands
-```bash
-# Run authentication tests
-python tests/test_auth.py
+### Security Checklist
+- [ ] Database whitelist configured
+- [ ] Environment variables set for production
+- [ ] LDAP configuration secured
+- [ ] SSL certificates installed
+- [ ] Encryption keys protected
+- [ ] Admin accounts configured
+- [ ] Access logs enabled
 
-# Run patient management tests
-python tests/test_patients.py
-
-# Run dual authentication tests
-python tests/test_simple_dual_auth.py
-python tests/test_dual_auth.py
-
-# Run comprehensive application tests
-python tests/test_refactored_app.py
-```
-
-## Development Patterns
-
-### Import Patterns
-- Use relative imports within the app package: `from ..models import User`
-- Use absolute imports for external packages: `from flask import Blueprint`
-- Avoid circular imports by importing inside functions when necessary
-
-### Database Access Pattern
-The application implements a fallback pattern for database access to handle SQLAlchemy metadata caching issues:
-1. Attempt SQLAlchemy ORM query
-2. Fall back to direct sqlite3 connection
-3. Return compatible user objects
-
-This pattern is implemented in `app/views/auth.py` and `app/__init__.py`.
-
-### Encryption Pattern
-Sensitive data uses property-based encryption in `app/models/patient.py`:
-```python
-@property
-def field_name(self):
-    return decrypt_data(self.field_name_encrypted)
-
-@field_name.setter
-def field_name(self, value):
-    self.field_name_encrypted = encrypt_data(value)
-```
-
-### Admin Interface Pattern
-Admin functionality uses dedicated Blueprint with role-based decorators and comprehensive user management features accessible via `/admin/dashboard`.
-
-## Environment Configuration
-
-Required environment variables:
-```bash
-export SECRET_KEY="production-secret-key"
-export AUTHORIZED_USERS="admin,user1,user2,doctor1,researcher1"
-export FLASK_CONFIG="development"  # or "production"
-```
-
-LDAP configuration (optional, stored in `config/.ldap_config.env`):
-```bash
-LDAP_ENABLED=true
-LDAP_SERVER=ldap://dc.company.com
-LDAP_PORT=389
-LDAP_USE_SSL=false
-LDAP_DOMAIN=COMPANY
-LDAP_BASE_DN=DC=company,DC=com
-LDAP_USER_SEARCH_BASE=OU=Users,DC=company,DC=com
-LDAP_USER_SEARCH_FILTER=(sAMAccountName={username})
-LDAP_BIND_USER=CN=ServiceAccount,OU=ServiceAccounts,DC=company,DC=com
-LDAP_BIND_PASSWORD=YourServiceAccountPassword
-LDAP_TIMEOUT=10
-ALLOW_LOCAL_AUTH=true
-ALLOW_LDAP_AUTH=true
-AUTO_CREATE_LDAP_USERS=true
-```
-
-## Security Features
-
-- **Data at rest**: Fernet encryption for sensitive patient data
-- **Data in transit**: HTTPS with security headers (HSTS, CSP, X-Frame-Options)
-- **Dual authentication**: Local password authentication + LDAP/Active Directory integration
-- **Authentication methods**: Auto-detect, Local-only, or LDAP-only modes
-- **User synchronization**: Automatic LDAP user creation and information updates
-- **Session management**: Flask-Login with secure session handling
-- **Access control**: User isolation and role-based permissions
-- **CSRF protection**: WTForms CSRF tokens on all forms
-- **Admin interface**: Web-based user management with comprehensive controls
-- **Configuration security**: Sensitive LDAP credentials stored in git-ignored config files
-
-## Testing Strategy
-
-The codebase includes comprehensive test files:
-- `tests/test_auth.py`: Authentication flow testing
-- `tests/test_patients.py`: Patient management and encryption testing
-- `tests/test_simple_dual_auth.py`: Direct dual authentication function testing
-- `tests/test_dual_auth.py`: HTTP-based dual authentication testing
-- `tests/test_refactored_app.py`: Full application integration testing
-
-## File Generation Notes
-
-Key files generated at runtime:
-- `instance/oncocentre.db`: SQLite database (Flask instance folder)
-- `config/encryption.key`: Fernet encryption key (critical for data access)
-- `ssl/server.crt`/`ssl/server.key`: SSL certificates for HTTPS
-- `config/.ldap_config.env`: LDAP configuration (created by setup script)
-
-## Application Routes
-
-- `/`: Patient creation form (requires login)
-- `/patients`: User's patient list (user-specific)
-- `/preview_id`: AJAX endpoint for ID preview
-- `/auth/login`: Authentication endpoint with dual auth method selection
-- `/auth/logout`: Logout endpoint
-- `/auth/ldap-test`: LDAP connection testing (admin only)
-- `/auth/create_initial_user`: Initial admin user creation (dev only)
-- `/admin/dashboard`: Admin interface (admin only)
-- `/admin/users`: User management (admin only)
-- `/admin/users/create`: User creation (admin only)
-- `/admin/users/<id>/edit`: User editing (admin only)
-- `/admin/system_info`: System information display (admin only)
-
-## Migration Notes
-
-This codebase has been refactored from a flat file structure to a modular Flask application with dual authentication support. Key improvements:
-
-1. **Separation of Concerns**: Models, views, forms, and utilities are now in separate modules
-2. **Application Factory**: Supports multiple configurations and testing
-3. **Blueprints**: Routes are organized by functionality
-4. **Centralized Configuration**: All settings in `app/config.py` with LDAP support
-5. **Dual Authentication**: Local and LDAP/Active Directory authentication with auto-detect mode
-6. **Organized File Structure**: 
-   - Configuration files in `config/` (git-ignored for security)
-   - Utility modules in `utils/`
-   - SSL certificates in `ssl/`
-   - All test files in `tests/`
-   - Management scripts in `scripts/`
-7. **Enhanced Security**: LDAP credentials and encryption keys properly secured
-8. **User Documentation**: Comprehensive French documentation for end users and administrators
-9. **Migration Scripts**: Database migration support for LDAP fields
-
-## Documentation
-
-### Available Documentation Files
-
-- **`GUIDE_UTILISATEUR.md`**: Complete French user manual covering login, patient creation, and all user features
-- **`GUIDE_ADMINISTRATEUR.md`**: French administrator guide covering installation, user management, security, and maintenance
-- **`INSTALLATION_GUIDE.md`**: Technical installation and setup instructions
-- **`SECURITY_DEPLOYMENT.md`**: Security features and deployment guidelines
-- **`ADMIN_IMPLEMENTATION_SUMMARY.md`**: Technical overview of admin features
+The application is now production-ready with comprehensive whitelist management and a clean, maintainable codebase structure.
